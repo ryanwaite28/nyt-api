@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>NY Times API</title>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.css"/>
+		<link rel="stylesheet" type="text/css" href="css/style-one.css"/>
+		<style>
+		
+			#nyt-header {
+				margin-top: 10px;
+			}
+			.border {
+				border: 1px solid black;
+				padding: 10px;
+			}
+			.nyt-img {
+				width: 95%;
+			}
+			#wikipedia-links {
+	margin: 0px;
+	padding: 5px;
+}
+
+#wikipedia-links li {
+	background-color: #bfbfbf;
+    margin-bottom: 5px;
+    padding: 5px;
+    width: 95%;
+    display: block;
+    margin: auto;
+    margin-bottom: 5px;
+    text-align: center;
+	-webkit-transition: opacity 0.3s;
+	transition: opacity 0.3s;
+}
+
+#wikipedia-links li:hover {
+	opacity: 0.7;
+	transition: 0.3s;
+}
+		
+		</style>
+		<script src="js/jQuery.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+		<script>
+		
+			// Main Angular Application
+			var App = angular.module("myApp", []);
+  
+			// Master Angular Controller
+			App.controller('masterCtrl', function($scope) {
+			
+				$scope.loadNews = function() {
+				
+					$scope.articles = [];
+			
+					var city = $('#nyt-city').val();
+				
+					var streetViewURL = 'http://maps.googleapis.com/maps/api/streetview?size=500x400&location=' + city + '';
+					$('#street-img').src = streetViewURL;
+					
+					$scope.imgURL = streetViewURL;
+		
+					//$scope.imgURL = streetViewURL;
+			
+					$("#news-items").text("");
+	
+					var nytURL = 'http://api.nytimes.com/svc/search/v2/articlesearch.json?q=' + city + '&sort=newest&api-key=14132d207c54f0e27f34c90f3e5e4e59:9:73463344'
+	
+					$.getJSON(nytURL, function(data) {
+						console.log(data);
+		
+						$('#nytimes-header').text(city);
+		
+						articles = data.response.docs;
+						
+						for (var i = 0; i < articles.length; i++) {
+							var article = articles[i];
+							
+							var HLK = article.headline.content_kicker;
+							var HLM = article.headline.main;
+							var HLP = article.headline.print_headline;
+							var LP = article.lead_paragraph;
+							if(article.byline == null){
+								continue;
+							}
+							var BL = article.byline.original;
+							var PD = article.pub_date;
+							var WL = article.web_url;
+							
+							$scope.articles.push({
+								headLineKicker: HLK,
+								headLineMain: HLM,
+								headLinePrint: HLP,
+								leadParagraph: LP,
+								byLine: BL,
+								pubDate: PD,
+								webLink: WL,
+							});
+							
+							
+							/*$("#news-items").append('<li class="article">' +
+							//'<h3>' + article.headline.content_kicker + '</h3>' +
+							'<a href="'+ article.web_url + '">' + '<h4>' + article.headline.main + '</h4>' + '</a>' +			
+							'<p>' + article.lead_paragraph + '</p>' + '<br>' + '<p>' + '<span>' + '<i>' + article.byline.original + '</i>' + '</span>' +'</p>' +
+							'<p>' + 'Publication Date: ' + article.pub_date + '</p>' +
+							//'<p>' + article.section_name + '</p>' +
+							'</li>'
+							);*/
+							
+						} 	
+						
+						$scope.$apply(function () {
+							console.log($scope.articles);
+						});
+						
+					}).error(function() {
+						$("#nytimes-header").text('New York Times Could Not Be Loaded');
+					})
+				
+					var wikiURL = 'http://en.wikipedia.org/w/api.php?action=opensearch&search='
+					+ city + '&format=json&callback=wikiCallback';
+	
+					var wikiTimeout = setTimeout(function(){
+						$('#wikipedia-header').text("Failed To Load Wikipedia Resources");
+					}, 8000);
+	
+					$.ajax({
+						url : wikiURL,
+						dataType : "jsonp",
+						// callback,
+						success : function(response) {
+							var articleList = response[1];
+							
+							$('#wikipedia-links').text('');
+			
+							for (var i = 0; i < articleList.length; i++) {
+								articleInfo = articleList[i];
+								var URL = 'http://en.wikipedia.org/wiki/' + articleInfo;
+								$('#wikipedia-links').append(
+								'<li><a href="' + URL + '">' + articleInfo + '</a></li>'
+								);
+							};
+							clearTimeout(wikiTimeout);
+						}
+		
+					})
+			
+				}
+				
+				$scope.webInfo = function() {
+					alert(
+						'Hello, and welcome! You are currently at the New York Times page! Search a location and load news about it. Enjoy!'
+					);	
+				}
+				
+				$scope.message = function() {
+					$('#msg-text').text('Load News on just about, Anything!');
+	
+					setTimeout(function(){ 
+						$('#msg-text').text('');
+					}, 2500);
+					
+				}
+			
+			})
+
+		</script>
+	</head>
+	
+	<body ng-app="myApp" ng-controller="masterCtrl" class="blacky">
+	
+
+		<div class="container-fluid" >
+		
+			<div class="row whitey" style="border-bottom: 1px solid black;">
+				<div class="col-md-12">
+					<h1 class="text-center header-text" onclick="sayHello()">New York Times!</h1>
+				</div>
+				<!--<div class="col-md-8">
+					<nav>
+						<ul class="nav-bar">
+							<li><a href="home.html">Home</a></li>
+							<li><a href="fs-api.html">FourSquare API</a></li>
+							<li><a href="nyt-api.html">NY Times API</a></li>
+							<li><a href="fnt-api.html">Nutritionix API</a></li>
+							<li><a href="scl-api.html">Social API</a></li>
+							<li><button id="info-btn" ng-click="webInfo()">Web Info</button></li>
+						</ul>
+					</nav>
+				</div>-->
+			</div><br>
+
+			<div class="row">
+
+				<div id="search-div" class="col-md-4">
+					<div id="fq-search" class="border whitey">
+						<h3 class="text-center">Search NY Times</h3>
+						<p class="text-center">Search a city anywhere in the world!</p>
+						<form id="form"><center>
+							<input type="text" id="nyt-city" placeholder="City"><br>
+							<button id="submit-btn" type="button" ng-click="loadNews()">Submit</button>
+							<button type="button" ng-click="message()">?</button>
+						</form>
+						<p id="msg-text"></p>
+					</div>
+					<br>
+					
+					<div class="wikipedia-container border whitey" style="margin-bottom: 20px;">
+						<h3 class="text-center" id="wikipedia-header">Relevant Wikipedia Links</h3>
+						<ul class="text-center" id="wikipedia-links">Type in an address above and find relevant Wikipedia articles here!</ul>
+					</div>
+					
+					<div class="border whitey">
+						<h3 class="text-center">Google StreetView</h3>
+						<center><img id="street-img" class="nyt-img" src={{imgURL}}/></center>
+					</div>
+					
+				</div>
+				
+				<div class="col-md-8">
+					<div class="nytimes-container whitey" style="border: 1px solid black;">
+						<div class="news-text" >
+							<h2 id="nyt-header" class="text-center" >New York Times</h2>
+							<i><h3 class="text-center" id="nytimes-header"></h3></i>
+						</div>
+						<div class="news-list" style="margin-bottom: 10px;">
+							<ul id="news-items" class="article-list"></ul>
+								<li class="article" ng-repeat="article in articles">
+									<h2>{{article.headLineKicker}}</h2>
+									<a href={{article.webLink}}><h3>{{article.headLineMain}}</h3></a>
+									<p>{{article.leadParagraph}}</p>
+									<br>
+									<p>{{article.byLine}}</p>
+									<p>{{article.pubDate}}</p>
+								</li>
+						</div>
+					</div>
+				</div>
+				
+			</div>
+		
+		</div>
+		
+		
+		
+	</body>
+	
+</html>
